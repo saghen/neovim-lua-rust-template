@@ -27,7 +27,7 @@ rg -l 'your-username' | xargs sed -i 's/your-username/new-username/g'
   dev = true,
 
   -- optional, see `lua/your-plugin/init.lua`
-  dependencies = 'saghen/blink.download',
+  dependencies = 'saghen/blink.lib',
 
   build = 'cargo build --release',
   opts = {}
@@ -43,7 +43,7 @@ rg -l 'your-username' | xargs sed -i 's/your-username/new-username/g'
 
   -- optional, see `lua/your-plugin/init.lua`
   -- download prebuilt binaries, from github releases, and setup `cpath`
-  dependencies = 'saghen/blink.download',
+  dependencies = 'saghen/blink.lib',
   -- OR build from source
   build = 'cargo build --release',
 

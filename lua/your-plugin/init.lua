@@ -5,33 +5,35 @@ function plugin.setup(opts)
   local config = require('your-plugin.config')
   config.merge_with(opts)
 
-  plugin.download_if_available(function(err)
-    if err then error(err) end
+  plugin
+    .download_if_available()
+    :map(function()
+      local rust_module = require('your-plugin.rust')
+      vim.api.nvim_create_user_command('Math', function(args)
+        local a = args.fargs[1]
+        local b = args.fargs[2]
+        local add, multi = rust_module.math(a, b)
 
-    local rust_module = require('your-plugin.rust')
-    vim.api.nvim_create_user_command('Math', function(args)
-      local a = args.fargs[1]
-      local b = args.fargs[2]
-      local add, multi = rust_module.math(a, b)
-
-      print('Added: ' .. add)
-      print('Multiplied: ' .. multi)
-    end, { nargs = '+' })
-  end)
+        print('Added: ' .. add)
+        print('Multiplied: ' .. multi)
+      end, { nargs = '+' })
+    end)
+    :catch(function(err) vim.notify(tostring(err), vim.log.levels.ERROR, { title = 'your-plugin' }) end)
 end
 
---- You may optionally use `blink.download` for prebuilt binaries with the included `Cross.toml`
+--- You may optionally use `blink.lib.build.download` for prebuilt binaries with the included `Cross.toml`
 --- and `.github/workflows/release.yaml`
+--- @return blink.lib.Task
 function plugin.download_if_available(callback)
-  local success, downloader = pcall(require, 'blink.download')
+  local success, downloader = pcall(require, 'blink.lib.build.download')
   if not success then return callback() end
 
-  -- See https://github.com/Saghen/blink.download for more info
+  -- See https://github.com/Saghen/blink.lib for more info
   local root_dir = vim.fn.resolve(debug.getinfo(1).source:match('@?(.*/)') .. '../../')
 
-  downloader.ensure_downloaded({
+  return downloader.ensure_downloaded({
     -- omit this property to disable downloading
-    -- i.e. https://github.com/Saghen/blink.delimiters/releases/download/v0.1.0/x86_64-unknown-linux-gnu.so
+    -- i.e. https://github.com/Saghen/blink.pairs/releases/download/v0.1.0/x86_64-unknown-linux-gnu.so
     download_url = function(version, system_triple, extension)
       return 'https://github.com/your-username/your-plugin/releases/download/'
         .. version
@@ -46,7 +48,7 @@ function plugin.download_if_available(callback)
     root_dir = root_dir,
     output_dir = '/target/release',
     binary_name = 'your_plugin', -- excluding `lib` prefix
-  }, callback)
+  })
 end
 
 return plugin
